@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -51,7 +52,11 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+
+	_, err = w.Write(resp)
+	if err != nil {
+		log.Println("Ошибка при записи ответа:", err)
+	}
 }
 
 // Обработчик для отправки на сервер postTask
@@ -62,6 +67,12 @@ func postTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// Проверка наличия задачи с таким жее ID
+	if _, ok := tasks[task.ID]; ok {
+		http.Error(w, "Задача с таким ID уже существует", http.StatusBadRequest)
+		return
+	}
+
 	tasks[task.ID] = task
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -86,7 +97,12 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+
+	_, err = w.Write(resp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 // Обработчик удаления по ID deleteTask
