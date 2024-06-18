@@ -100,6 +100,7 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(resp)
 	if err != nil {
+		log.Println("Ошибка при записи ответа:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
